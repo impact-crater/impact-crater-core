@@ -1,0 +1,8 @@
+{
+    "name" : "impact-crater", 
+    "version" : "0.0.1", 
+    "dependencies" : { 
+        "canvas" : "1.0.4",
+        "socket.io" : "0.9.16"
+    }
+}
