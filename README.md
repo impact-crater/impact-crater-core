@@ -58,5 +58,24 @@ differientiate between your server and client code.
 As you develop your games for multiplayer you will have to start thinking of entities from two points of
 view, client-side and server-side.
         
-        
+## Config
+
+This part is pretty easy. You simply need to specify a host and port in the following files.
+
+    my-mp-game/
+      server/
+        config.js.example - Copy this file to config.js and set the port
+      index.html ---------- Set the host and port in the head/script section.
+      
+## Docs
+
+###### Client Classes
+* [GameClient](https://github.com/cha55son/impact-crater/wiki/GameClient)
+* [EntityClient](#EntityClient)
+
+###### Server Classes
+* [GameServer](#GameServer)
+* [EntityServer](#EntityServer)
+
+
         
