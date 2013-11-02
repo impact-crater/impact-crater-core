@@ -70,8 +70,8 @@ This part is pretty easy. You simply need to specify a host and port in the foll
 ## Docs
 
 ###### Client Classes
-* [GameClient](https://github.com/cha55son/impact-crater/wiki/GameClient)
-* [EntityClient](#EntityClient)
+* [GameClient](GameClient)
+* [EntityClient](EntityClient)
 
 ###### Server Classes
 * [GameServer](#GameServer)
