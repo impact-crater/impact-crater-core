@@ -34,7 +34,9 @@ You should see the following structure. I will list the important files.
       server/
         index.js ------ The bootstrap file to start impact in node 
         
-Be sure you unzip your copy of impact over the my-mp-game/impact directory. 
+Be sure you unzip your copy of impact over the my-mp-game/impact directory. If you
+can't unzip onto of the impact folder or merge into it, then simply copy the `lib/plugins` folder. 
+Delete the impact directory and slide your real `impact` folder into place and paste the `lib/plugins`.
 Once you do that your file structure should look like the following:
 
     my-mp-game/
