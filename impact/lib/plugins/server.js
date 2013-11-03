@@ -163,20 +163,18 @@ ig.module(
         draw: function() {
             this.parent();
             var cur = this.getPos();
-            if (this.last.x != cur.x ||
-                this.last.y != cur.y ||
-                this.last.a != cur.a)
+            if (this.last.x    != cur.x ||
+                this.last.y    != cur.y ||
+                this.last.a    != cur.a ||
+                this.last.anim != cur.anim)
                 ig.game.entityMove(this);
-            else if (this.anim) {
-                this.anim = '';
-                ig.game.entityMove(this);
-            }
         },
         getPos: function() {
             return {
                 x: this.pos.x,
                 y: this.pos.y,
-                a: this.currentAnim ? this.currentAnim.angle : 0
+                a: this.currentAnim ? this.currentAnim.angle : 0,
+                anim: this.anim
             };
         },
         kill: function() {
