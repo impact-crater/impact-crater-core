@@ -17,7 +17,7 @@ ig.module(
                 throw 'ClientHostNotSetError. Set the ClientHost in index.html.';
             self.socket = io.connect(ClientHost);
             self.socket.on('reconnect', function() {
-                console.log('Reconnecting... removing all entities.');
+                ig.log('Reconnecting... removing all entities.');
                 self.entities.forEach(function(ent) {
                     self.removeEntity(ent);
                 });
@@ -32,7 +32,7 @@ ig.module(
               .on('entity.create', function(data) {
                var ent = self.spawnEntity(window[data.type], data.x, data.y, data.settings);
                ent.type = data.type;
-               console.log('Created entity: ' + data.type + ', X: ' + data.x + ', Y: ' + data.y + ', name: ' + data.settings.name);
+               ig.log('Created entity: ' + data.type + ', X: ' + data.x + ', Y: ' + data.y + ', name: ' + data.settings.name);
             }).on('entity.move', function(data) {
                 var entity = ig.game.getEntityByName(data.name); 
                 if (!entity) return;
@@ -41,7 +41,7 @@ ig.module(
             }).on('entity.remove', function(data) {
                 var entity = ig.game.getEntityByName(data.name);
                 if (!entity) return;
-                console.log('Destroyed entity: ' + entity.type + ', name: ' + entity.name);
+                ig.log('Destroyed entity: ' + entity.type + ', name: ' + entity.name);
                 entity.kill();
             });
         },
@@ -108,34 +108,26 @@ ig.module(
                 if (this.currentAnim)
                     this.currentAnim.angle = this.nextPos.a;
             }
-        },
-        // This entity will keep track of the inputs binded
-        // and transmit them to the server when necessary.
-        inputBind: function(key, action) {
-           this.binds[key] = action; 
-           ig.input.bind(key, action);
         }
     });
 
     // Change the input class in place so the server
     // may be notified when an action is triggered.
     ig.Input = ig.Input.extend({
-        keydown: function(event) {
-            var code = event.type == 'keydown' 
+        triggerEvent: function(event, type) {
+            var code = event.type == type 
                 ? event.keyCode 
                 : (event.button == 2 ? ig.KEY.MOUSE2 : ig.KEY.MOUSE1);
-
             var action = this.bindings[code];
-            if (action) ig.game.input('keydown', action);
+            if (action && ig.game.input)
+                ig.game.input(type, action);
+        },
+        keydown: function(event) {
+            this.triggerEvent(event, 'keydown');
             this.parent(event);
         },
         keyup: function(event) {
-            var code = event.type == 'keyup' 
-                ? event.keyCode 
-                : (event.button == 2 ? ig.KEY.MOUSE2 : ig.KEY.MOUSE1);
-
-            var action = this.bindings[code];
-            if (action) ig.game.input('keyup', action);
+            this.triggerEvent(event, 'keyup');
             this.parent(event);
         }
     });

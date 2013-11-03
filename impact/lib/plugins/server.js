@@ -17,7 +17,11 @@ ig.module(
                 var id = socket.id;
                 socket.on('disconnect', function() {
                     self.clients[id] = undefined;
-                    self.clientDisconnected(id);
+                    self.clientDisconnected(this);
+                    console.log('[INFO] Client disconnected: ' + id);
+                }).on('reconnect', function() {
+                    self.clientReconnected(self);
+                    console.log('[INFO] Client reconnected: ' + id);
                 });
 
                 self.clients[id] = socket;
@@ -48,11 +52,22 @@ ig.module(
                     self.entityMove(ent, socket);
                 });
                 self.clientConnected(socket);
+                console.log('[INFO] Client connected: ' + id);
             });
         },
         clientConnected: function(socket) { },
         clientReconnected: function(socket) { },
-        clientDisconnected: function(socket) { },
+        clientDisconnected: function(socket) { 
+            // Remove all entities for the client that disconnected.
+            console.log('[INFO] Removing ' + this.entities.length + ' entities');
+            var cnt = this.entities.length - 1;
+            for (var i = cnt; i >= 0; i--) {
+                var ent = this.entities[i];
+                // Use removeEntity instead of kill.
+                if (ent.owner == socket.id)
+                    this.removeEntity(this.entities[i]);
+            }
+        },
 
         spawnEntity: function(type, x, y, settings) {
             // Find the key for the entity type
