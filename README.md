@@ -7,6 +7,9 @@ Impact-crater is an authoritative server meaning the server makes all the moves 
 merely controllers sending commands to the server. Game development is basically the same, the largest
 difference you will notice is the seperation of client and server code, trust me it's still simple and fun.
 
+Check out the following tutorial for a more in-depth look.
+[Simple Multiplayer Tutorial](https://github.com/cha55son/impact-crater/wiki/Simple-Multiplayer-Tutorial)
+
 ## Setup
 
 To get started with impact-crater you need to install the cairo package and nodejs. 
