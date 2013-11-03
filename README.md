@@ -9,18 +9,21 @@ difference you will notice is the seperation of client and server code, trust me
 
 ## Setup
 
-To get started with impact-crater you need to install the cairo package. 
-This is the only dependency outside of node packages.
+To get started with impact-crater you need to install the cairo package and nodejs. 
 
-    yum install cairo
-    or 
-    apt-get install cairo
+    yum install cairo      # CentOS
+    apt-get install cairo  # Debian
+    brew install cairo     # MacOS X
     
-Once you have cairo installed you need to checkout the code.
+    yum install nodejs      # CentOS
+    apt-get install nodejs  # Debian
+    brew install nodejs     # MacOS X
+    
+Once you have installed cairo and nodejs you need to checkout the code.
 
     git clone git@github.com:cha55son/impact-crater.git my-mp-game
     
-Run `npm install` to install the required node packages.
+Run `npm install` to install the required node packages. (npm should come with nodejs or as an additional package)
 
 You should see the following structure. I will list the important files.
 
