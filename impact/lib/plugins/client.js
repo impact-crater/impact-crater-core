@@ -7,51 +7,88 @@ ig.module(
 )
 .defines(function() {
     // This class handles all the communications with the server.
-    // Also handles the latency requests from the server.
     GameClient = ig.Game.extend({
         mousePos: { x: 0, y: 0 },
         screenPos: { x: 0, y: 0 },
+        socket: null,
         init: function() {
             var self = this;
             if (typeof ClientHost == "undefined")
                 throw 'ClientHostNotSetError. Set the ClientHost in index.html.';
-            self.socket = io.connect(ClientHost);
-            self.socket.on('reconnect', function() {
-                ig.log('Reconnecting... removing all entities.');
-                self.entities.forEach(function(ent) {
-                    self.removeEntity(ent);
-                });
-            });
-            self.socket.on('ping', function() {
+            this.socket = io.connect(ClientHost);
+            // This client's events
+            this.socket.on('connect', function() {
+               self.connected(this); 
+            }).on('reconnect', function() {
+               self.reconnected(this);
+            }).on('disconnect', function() {
+               self.disconnected(this); 
+            // Latency events
+            }).on('ping', function() {
                 this.emit('pong');
             }).on('latency', function(latency) {
                 // Do something with the latency
-            });
-            // Any entity events from the server only apply to EntityClients.
-            self.socket
-              .on('entity.create', function(data) {
-               var ent = self.spawnEntity(window[data.type], data.x, data.y, data.settings);
-               ent.type = data.type;
-               ig.log('Created entity: ' + data.type + ', X: ' + data.x + ', Y: ' + data.y + ', name: ' + data.settings.name);
+            // Entity events
+            }).on('entity.create', function(data) {
+                self.entityCreated(data);
             }).on('entity.move', function(data) {
-                var entity = ig.game.getEntityByName(data.name); 
-                if (!entity) return;
-                entity.anim = data.anim;
-                entity.nextPos = { x: data.x, y: data.y, a: data.a };
+                self.entityMoved(data);
             }).on('entity.remove', function(data) {
-                var entity = ig.game.getEntityByName(data.name);
-                if (!entity) return;
-                ig.log('Destroyed entity: ' + entity.type + ', name: ' + entity.name);
-                entity.kill();
+                self.entityRemoved(data);
+            // Other client events
+            }).on('client.connect', function(data) {
+                self.clientConnected(data.id);
+            }).on('client.disconnect', function(data) {
+                self.clientDisconnected(data.id);
+            }).on('client.reconnect', function(data) {
+                self.clientReconnected(data.id);
             });
-        },
-        getClientId: function() {
-            return this.socket.socket.sessionid;
         },
         update: function() {
             this.parent();
             this.checkScreen();
             this.checkMouse();
+        },
+        // This client's events
+        // ----------------------------------------
+        connected: function(socket) { },
+        // Be sure to call this.parent() to remove entities on reconnect
+        // if you override this function.
+        reconnected: function(socket) { 
+            ig.log('Reconnecting... removing all entities.');
+            this.entities.forEach(function(ent) {
+                this.removeEntity(ent);
+            });
+        },
+        disconnected: function(socket) { },
+        // Other client events
+        // ----------------------------------------
+        clientConnected: function(id) { },
+        clientDisconnected: function(id) { },
+        clientReconnected: function(id) { },
+        // Entity events
+        // ----------------------------------------
+        entityCreated: function(data) {
+            var ent = self.spawnEntity(window[data.type], data.x, data.y, data.settings);
+            ent.type = data.type;
+            ig.log('Created entity: ' + data.type + ', X: ' + data.x + ', Y: ' + data.y + ', name: ' + data.settings.name);
+        },
+        entityMoved: function(data) {
+            var entity = ig.game.getEntityByName(data.name); 
+            if (!entity) return;
+            entity.anim = data.anim;
+            entity.nextPos = { x: data.x, y: data.y, a: data.a };
+        },
+        entityRemoved: function(data) {
+            var entity = ig.game.getEntityByName(data.name);
+            if (!entity) return;
+            ig.log('Destroyed entity: ' + entity.type + ', name: ' + entity.name);
+            entity.kill();
+        },
+        // Helper methods
+        // ----------------------------------------
+        getClientId: function() {
+            return this.socket.id;
         },
         // Notify the server if the screen has moved.
         checkScreen: function() {

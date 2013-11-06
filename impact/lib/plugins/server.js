@@ -10,54 +10,49 @@ ig.module(
 )
 .defines(function() {
     GameServer = ig.Game.extend({
+        clients: { },
         init: function() {
             var self = this;
-            self.clients = { };
             ig.io.sockets.on('connection', function(socket) {
-                var id = socket.id;
                 socket.on('disconnect', function() {
-                    self.clients[id] = undefined;
                     self.clientDisconnected(this);
-                    console.log('[INFO] Client disconnected: ' + id);
                 }).on('reconnect', function() {
-                    self.clientReconnected(self);
-                    console.log('[INFO] Client reconnected: ' + id);
-                });
-
-                self.clients[id] = socket;
-                // Each client needs its own input class.
-                socket.input = new ig.Input();
-                socket.screen = { x: 0, y: 0 };
-                ig.latency(socket);
-
-                socket.on('screen.move', function(obj) {
+                    self.clientReconnected(this);
+                }).on('screen.move', function(obj) {
                    this.screen.x = obj.x;
                    this.screen.y = obj.y;
-                });
-
-                socket.on('input.event', function(obj) {
+                }).on('input.event', function(obj) {
                     socket.input['set_' + obj.type](obj.action);
-                });
-
-                socket.on('input.mousemove', function(obj) {
+                }).on('input.mousemove', function(obj) {
                     this.input.mouse.x = obj.x;
                     this.input.mouse.y = obj.y;
                 });
-
-                // Send the client all the active entities
-                self.entities.forEach(function(ent) {
-                    self.entityCreate(ent.classType, ent.pos.x, ent.pos.y, {
-                        name: ent.name
-                    }, socket);
-                    self.entityMove(ent, socket);
-                });
                 self.clientConnected(socket);
-                console.log('[INFO] Client connected: ' + id);
             });
         },
-        clientConnected: function(socket) { },
-        clientReconnected: function(socket) { },
+        clientConnected: function(socket) { 
+            console.log('[INFO] Client connected: ' + socket.id);
+            this.clients[socket.id] = socket;
+            // Each client needs its own input class.
+            socket.input = new ig.Input();
+            socket.screen = { x: 0, y: 0 };
+            ig.latency(socket);
+            // Send the client all the active entities
+            var self = this;
+            this.entities.forEach(function(ent) {
+                this.entityCreate(ent.classType, ent.pos.x, ent.pos.y, ent._settings, socket);
+                this.entityMove(ent, socket);
+            });
+            ig.io.sockets.emit('client.connect', { id: socket.id });
+        },
+        clientReconnected: function(socket) { 
+            console.log('[INFO] Client reconnected: ' + socket.id);
+            ig.io.sockets.emit('client.reconnect', { id: socket.id });
+        },
         clientDisconnected: function(socket) { 
+            console.log('[INFO] Client disconnected: ' + socket.id);
+            ig.io.sockets.emit('client.disconnect', { id: socket.id });
+            this.clients[id] = undefined;
             // Remove all entities for the client that disconnected.
             console.log('[INFO] Removing ' + this.entities.length + ' entities');
             var cnt = this.entities.length - 1;
@@ -68,7 +63,6 @@ ig.module(
                     this.removeEntity(this.entities[i]);
             }
         },
-
         spawnEntity: function(type, x, y, settings) {
             // Find the key for the entity type
             var key = '';
@@ -80,37 +74,31 @@ ig.module(
             // The server will tell the clients how to move entities based on this id.
             settings.name = ig.Entity._lastId + 1;
             settings.classType = key;
-            // If socket is provided then set the
-            // owner id from the socket then remove it.
+            // If socket is provided then set the owner id
+            if (settings.socket)
+                settings.owner = settings.socket.id;
+            var ent = this.parent(global[key], x, y, settings);
+            // Remove the socket reference before sending it to the clients.
             var socket = null;
-            // Remove the socket reference before sending it
-            // to the clients.
             if (settings.socket) {
                 socket = settings.socket;
                 settings.owner = socket.id;
                 delete settings.socket;
             }
-            this.entityCreate(key, x, y, settings);
-            if (socket)
-                settings.socket = socket;
-            // Delay the entity creation until all
-            // clients are aware of the entity.
-            return this.parent(global[key], x, y, settings);
+            this.entityCreate(key, ent.pos.x, ent.pos.y, settings);
+            return ent;
         },
-
         removeEntity: function(entity) {
             if (entity instanceof EntityServer)
                 this.entityRemove(entity);
             this.parent(entity);
         },
-
         entityCreate: function(typeStr, x, y, settings, toSocket) {
             var recipients = toSocket || ig.io.sockets;
             recipients.emit('entity.create', {
                 type: typeStr, x: x, y: y, settings: settings
             });
         },
-
         entityMove: function(entity, toSocket) {
             var recipients = toSocket || ig.io.sockets;
             var pos = entity.getPos();
@@ -122,7 +110,6 @@ ig.module(
                 anim: entity.anim
             });
         },
-
         entityRemove: function(entity, toSocket) {
             var recipients = toSocket || ig.io.sockets;
             recipients.emit('entity.remove', {
@@ -140,11 +127,16 @@ ig.module(
             draw: function() { }
         },
         init: function(x, y, settings) {
-            if (settings.socket) {
-                this.input = settings.socket.input;
-                this.screen = settings.socket.screen;
+            var socket = settings.socket || undefined;
+            settings.socket = undefined;
+            // Cache the settings so when a client joins
+            // we can pass the same settings.
+            this._settings = settings;
+            if (socket) {
+                this.socket = socket;
+                this.input = socket.input;
+                this.screen = socket.screen;
                 this.anim = '';
-                delete settings.socket;
             }
             this.parent(x, y, settings);
         }, 
