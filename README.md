@@ -10,6 +10,9 @@ difference you will notice is the seperation of client and server code, trust me
 Check out the following tutorial for a more in-depth look.
 [Simple Multiplayer Tutorial](https://github.com/cha55son/impact-crater/wiki/Simple-Multiplayer-Tutorial)
 
+If you have an ImpactJS license be sure to check out the demo at:
+[impactjs forum post](http://impactjs.com/forums/private/easy-authoritative-impactjs-server)
+
 ## Setup
 
 To get started with impact-crater you need to install the cairo package and nodejs. 
