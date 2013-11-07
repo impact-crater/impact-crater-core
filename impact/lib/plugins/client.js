@@ -55,7 +55,7 @@ ig.module(
         // Be sure to call this.parent() to remove entities on reconnect
         // if you override this function.
         reconnected: function(socket) { 
-            ig.log('Reconnecting... removing all entities.');
+            ig.log('[INFO] Client reconnecting. Removing all entities.');
             this.entities.forEach(function(ent) {
                 this.removeEntity(ent);
             });
@@ -69,26 +69,26 @@ ig.module(
         // Entity events
         // ----------------------------------------
         entityCreated: function(data) {
-            var ent = self.spawnEntity(window[data.type], data.x, data.y, data.settings);
+            var ent = this.spawnEntity(window[data.type], data.x, data.y, data.settings);
             ent.type = data.type;
-            ig.log('Created entity: ' + data.type + ', X: ' + data.x + ', Y: ' + data.y + ', name: ' + data.settings.name);
+            ig.log('[INFO] Created entity: ' + data.type + ', X: ' + parseInt(data.x) + ', Y: ' + parseInt(data.y) + ', name: ' + data.settings.name);
         },
         entityMoved: function(data) {
-            var entity = ig.game.getEntityByName(data.name); 
+            var entity = this.getEntityByName(data.name); 
             if (!entity) return;
             entity.anim = data.anim;
             entity.nextPos = { x: data.x, y: data.y, a: data.a };
         },
         entityRemoved: function(data) {
-            var entity = ig.game.getEntityByName(data.name);
+            var entity = this.getEntityByName(data.name);
             if (!entity) return;
-            ig.log('Destroyed entity: ' + entity.type + ', name: ' + entity.name);
+            ig.log('[INFO] Destroyed entity: ' + entity.type + ', name: ' + entity.name);
             entity.kill();
         },
         // Helper methods
         // ----------------------------------------
         getClientId: function() {
-            return this.socket.id;
+            return this.socket.socket.sessionid;
         },
         // Notify the server if the screen has moved.
         checkScreen: function() {
@@ -114,8 +114,8 @@ ig.module(
         },
         screenMovement: function() {
             this.socket.emit('screen.move', { 
-                x: ig.game.screen.x, 
-                y: ig.game.screen.y 
+                x: this.screen.x, 
+                y: this.screen.y 
             });
         },
         mouseMovement: function() {

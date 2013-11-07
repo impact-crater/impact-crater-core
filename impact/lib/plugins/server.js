@@ -40,8 +40,8 @@ ig.module(
             // Send the client all the active entities
             var self = this;
             this.entities.forEach(function(ent) {
-                this.entityCreate(ent.classType, ent.pos.x, ent.pos.y, ent._settings, socket);
-                this.entityMove(ent, socket);
+                self.entityCreate(ent.classType, ent.pos.x, ent.pos.y, ent._settings, socket);
+                self.entityMove(ent, socket);
             });
             ig.io.sockets.emit('client.connect', { id: socket.id });
         },
@@ -52,9 +52,10 @@ ig.module(
         clientDisconnected: function(socket) { 
             console.log('[INFO] Client disconnected: ' + socket.id);
             ig.io.sockets.emit('client.disconnect', { id: socket.id });
-            this.clients[id] = undefined;
+            this.clients[socket.id] = undefined;
             // Remove all entities for the client that disconnected.
             console.log('[INFO] Removing ' + this.entities.length + ' entities');
+            // Count down so removing entities doesnt mess anything up.
             var cnt = this.entities.length - 1;
             for (var i = cnt; i >= 0; i--) {
                 var ent = this.entities[i];
@@ -119,7 +120,8 @@ ig.module(
     });
 
     EntityServer = ig.Entity.extend({
-        killed: function(ent) { }, // simple callback when this entity is killed.
+        // simple callback when this entity is killed.
+        killed: function(ent) { },
         // Stub the currentAnim property
         currentAnim: { 
             angle: 0, 
