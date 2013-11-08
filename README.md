@@ -1,5 +1,9 @@
 ## impact-crater.js
 
+```
+Please be aware this project is highly experimental and the API will change rapidly.
+```
+
 Impact.js meet the world of multiplayer! Take the excellent Impact.js framework and 
 expand your game to include multiplayer. I have seen many attempts to transform Impact.js into a
 multiplayer framework with little success. The main problem being the clients control the game. 
