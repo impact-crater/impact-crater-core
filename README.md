@@ -38,15 +38,21 @@ Run `npm install` to install the required node packages. (npm should come with n
 You should see the following structure. I will list the important files.
 
     my-mp-game/
-      index.html ------ Entry point for your game clients
       impact/ --------- You will need to unzip your impact directory here
         lib/
           plugins/
             client.js - Plugin code to bootstrap clients for multiplayer.
             server.js - Plugin code to boostrap the server for multiplayer.
+      public/
+        index.ejs.example ----- Template file for your game screen.
       server/
-        index.js ------ The bootstrap file to start impact in node 
-        
+        start.js.example ------ The file used to start the server. 
+        config.js.example ----- Setings for the server. 
+
+For the server to function properly you will need to copy all `.example` files to their respective file names without the `.example`. Edit the files to suit your application. You can use the following linux command to find the `.example` files.
+
+    find . -name '*.example'
+
 Be sure you unzip your copy of impact over the my-mp-game/impact directory. If you
 can't unzip onto of the impact folder or merge into it, then simply copy the `lib/plugins` folder. 
 Delete the impact directory and slide your real `impact` folder into place and paste the `lib/plugins`.
@@ -75,12 +81,15 @@ view, client-side and server-side.
         
 ## Config
 
-This part is pretty easy. You simply need to specify a host and port in the following files.
+This part is pretty easy. You simply need to specify a host and port in the config file. Be sure to copy it to `server/config.js`.
 
     my-mp-game/
       server/
-        config.js.example - Copy this file to config.js and set the port
-      index.html ---------- Set the host and port in the head/script section.
+        config.js.example - Copy this file to config.js and set the host, port
+
+## Starting the server
+
+To start the server all you need to do is run `node server/start.js`. The server now uses the express web server and will handle serving the game files.
       
 ## Docs
 
