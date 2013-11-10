@@ -47,7 +47,7 @@ You should see the following structure. I will list the important files.
         index.ejs.example ----- Template file for your game screen.
       server/
         start.js.example ------ The file used to start the server. 
-        config.js.example ----- Setings for the server. 
+        config.js.example ----- Settings for the server. 
 
 For the server to function properly you will need to copy all `.example` files to their respective file names without the `.example`. Edit the files to suit your application. You can use the following linux command to find the `.example` files.
 
