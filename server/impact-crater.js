@@ -1,11 +1,22 @@
 var Canvas = require('canvas');
 var path = require('path');
+var fs = require('fs');
+
 try {
     var config = require(__dirname + '/config.js');
 } catch (err) {
-    throw "Missing config file. Run 'cp server/config.js.example server/config.js'.";
+    throw "Missing config.js. Run 'cp server/config.js.example server/config.js'.";
 }
-var impactPath = path.dirname(__dirname) + '/impact/lib';
+
+// Setup paths
+var root = path.dirname(__dirname);
+var impactPath = root + '/' + config.impact;
+var impactLibPath = impactPath + '/lib';
+var publicPath = root + '/' + config.assets;
+
+if (!fs.existsSync(publicPath + '/index.ejs'))
+    throw "Missing index.ejs. Run 'cp public/index.ejs.example public/index.ejs'.";
+
 // Alter the env to allow impact
 // to run without DOM interaction.
 global.window = global;
@@ -18,7 +29,7 @@ global.ImpactMixin = {
             // Ignore any dom ready type stuff on the server.
             if (name == 'dom.ready') return;
             var path = name.replace(/\./g, '/');
-            require(impactPath + '/' + path);    
+            require(impactLibPath + '/' + path);    
         });
         return ig; 
     },
@@ -37,13 +48,33 @@ window.addEventListener = function() { };
 
 // Canvas should be the only element impact uses on the server.
 window.HTMLElement = Canvas;
-require(impactPath + '/impact/impact.js');
+require(impactLibPath + '/impact/impact.js');
+
+// Setup the webserver
+var express = require('express');
+var http = require('http');
+var app = express();
+var server = app.listen(config.port);
 // Setup the websockets
-ig.io = require('socket.io').listen(config.port);
+ig.io = require('socket.io').listen(server);
 ig.io.set('log level', 1);
+
 // Setup the latency checking
 ig.latency = require(__dirname + '/latency');
 
-// Start the game. The game will take full control
-// of node from now on.
-require(impactPath + '/game/server/main.js');
+// Setup routes and asset paths
+app.use(express.static(publicPath));
+app.use('/impact', express.static(impactPath));
+app.get('/', function(req, res) {
+    res.render(publicPath + '/index.ejs', { config: config });
+});
+
+module.exports = {
+    ig: ig,
+    web: app,
+    io: ig.io,
+    // Start a game
+    start: function() {
+        require(impactLibPath + '/game/server/main.js');
+    }
+};

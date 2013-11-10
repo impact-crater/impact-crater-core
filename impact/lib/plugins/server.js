@@ -29,6 +29,34 @@ ig.module(
                 });
                 self.clientConnected(socket);
             });
+            // Every second calculate the average ping for clients.
+            this.clientInterval = setInterval(function() {
+                var total = i = 0;
+                for (var key in self.clients) {
+                    if (!self.clients[key]) continue;
+                    total += self.clients[key].latency.avg;
+                    i++;
+                }
+                self.clientAvgPing = parseInt(total / i);
+            }, 1000);
+        },
+        emit: function(to, key, data) {
+            if (!to) return;
+            return to.emit(key, data);
+        },
+        broadcast: function(key, data) {
+            // Account for the average client ping.
+            var self = this;
+            for (var i in this.clients) {
+                var client = this.clients[i];
+                if (!client) continue;
+                if (client.latency.avg >= this.clientAvgPing)
+                    this.emit(client, key, data);
+                else
+                    setTimeout(function() {
+                        self.emit(client, key, data);
+                    }, this.clientAvgPing - client.latency.avg);
+            }
         },
         clientConnected: function(socket) { 
             console.log('[INFO] Client connected: ' + socket.id);
@@ -43,15 +71,15 @@ ig.module(
                 self.entityCreate(ent.classType, ent.pos.x, ent.pos.y, ent._settings, socket);
                 self.entityMove(ent, socket);
             });
-            ig.io.sockets.emit('client.connect', { id: socket.id });
+            this.broadcast('client.connect', { id: socket.id });
         },
         clientReconnected: function(socket) { 
             console.log('[INFO] Client reconnected: ' + socket.id);
-            ig.io.sockets.emit('client.reconnect', { id: socket.id });
+            this.broadcast('client.reconnect', { id: socket.id });
         },
         clientDisconnected: function(socket) { 
             console.log('[INFO] Client disconnected: ' + socket.id);
-            ig.io.sockets.emit('client.disconnect', { id: socket.id });
+            this.broadcast('client.disconnect', { id: socket.id });
             this.clients[socket.id] = undefined;
             // Remove all entities for the client that disconnected.
             console.log('[INFO] Removing ' + this.entities.length + ' entities');
@@ -95,27 +123,29 @@ ig.module(
             this.parent(entity);
         },
         entityCreate: function(typeStr, x, y, settings, toSocket) {
-            var recipients = toSocket || ig.io.sockets;
-            recipients.emit('entity.create', {
-                type: typeStr, x: x, y: y, settings: settings
-            });
+            var data = { type: typeStr, x: x, y: y, settings: settings };
+            var key = 'entity.create';
+            if (toSocket) this.emit(toSocket, key, data);
+            else this.broadcast(key, data);
         },
         entityMove: function(entity, toSocket) {
-            var recipients = toSocket || ig.io.sockets;
             var pos = entity.getPos();
-            recipients.emit('entity.move', {
+            var data = {
                 name: entity.name, 
                 x: pos.x, 
                 y: pos.y, 
                 a: pos.a, 
                 anim: entity.anim
-            });
+            };
+            var key = 'entity.move';
+            if (toSocket) this.emit(toSocket, key, data);
+            else this.broadcast(key, data);
         },
         entityRemove: function(entity, toSocket) {
-            var recipients = toSocket || ig.io.sockets;
-            recipients.emit('entity.remove', {
-                name: entity.name
-            });
+            var data = { name: entity.name };
+            var key = 'entity.remove';
+            if (toSocket) this.emit(toSocket, key, data);
+            else this.broadcast(key, data);
         }
     });
 

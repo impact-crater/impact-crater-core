@@ -55,7 +55,6 @@ ig.module(
         // Be sure to call this.parent() to remove entities on reconnect
         // if you override this function.
         reconnected: function(socket) { 
-            ig.log('[INFO] Client reconnecting. Removing all entities.');
             this.entities.forEach(function(ent) {
                 this.removeEntity(ent);
             });

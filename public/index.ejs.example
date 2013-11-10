@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Awesome Game!</title>
+        <script>
+            ImpactPrefix = 'impact/';
+            ClientHost = 'http://<%= config.host %>:<%= config.port %>';
+        </script>
+        <script type="text/javascript" src="http://<%= config.host %>:<%= config.port %>/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="impact/lib/impact/impact.js"></script>
+        <script type="text/javascript" src="impact/lib/game/main.js"></script>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+    </body>
+</html>
