@@ -19,17 +19,13 @@ If you have an ImpactJS license be sure to check out the demo at:
 
 ## Setup
 
-To get started with impact-crater you need to install the cairo package and nodejs. 
+To get started with impact-crater you need to install the nodejs package. 
 
-    yum install cairo      # CentOS
-    apt-get install cairo  # Debian
-    brew install cairo     # MacOS X
-    
     yum install nodejs      # CentOS
     apt-get install nodejs  # Debian
     brew install nodejs     # MacOS X
     
-Once you have installed cairo and nodejs you need to checkout the code.
+Once you have installed nodejs you need to checkout the code.
 
     git clone git@github.com:cha55son/impact-crater.git my-mp-game
     
