@@ -1,4 +1,3 @@
-var Canvas = require('canvas');
 var path = require('path');
 var fs = require('fs');
 
@@ -19,6 +18,30 @@ if (!fs.existsSync(publicPath + '/index.ejs'))
 
 // Alter the env to allow impact
 // to run without DOM interaction.
+var Canvas = function() {
+    return { 
+        addEventListener: function() { },
+        style: { },
+        getContext: function() { 
+            // This is the context
+            return {
+                save: function() { },
+                translate: function() { },
+                rotate: function() { },
+                restore: function() { },
+                drawImage: function() { },
+                strokeRect: function() { },
+                beginPath: function() { },
+                moveTo: function() { },
+                lineTo: function() { },
+                stroke: function() { },
+                clearPath: function() { },
+                scale: function() { },
+                fillRect: function() { }
+            };
+        }
+    };
+};
 global.window = global;
 global.ImpactMixin = {
     module: function() { return ig; },
@@ -37,10 +60,7 @@ global.ImpactMixin = {
         func(); // immediately execute
     },
     $: function(selector) {
-        var canvas = new Canvas(200, 200);
-        canvas.addEventListener = function() { };
-        canvas.style = { };
-        return canvas;
+        return new Canvas();
     }
 };
 window.document = { };

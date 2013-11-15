@@ -2,7 +2,6 @@
     "name" : "impact-crater", 
     "version" : "0.0.1", 
     "dependencies" : { 
-        "canvas" : "1.0.4",
         "socket.io" : "0.9.16",
         "express": "3.4.4",
         "ejs": "0.8.4"

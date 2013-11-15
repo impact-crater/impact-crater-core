@@ -41,22 +41,12 @@ ig.module(
             }, 1000);
         },
         emit: function(to, key, data) {
-            if (!to) return;
+            if (!to || !to.emit) return;
             return to.emit(key, data);
         },
         broadcast: function(key, data) {
-            // Account for the average client ping.
-            var self = this;
-            for (var i in this.clients) {
-                var client = this.clients[i];
-                if (!client) continue;
-                if (client.latency.avg >= this.clientAvgPing)
-                    this.emit(client, key, data);
-                else
-                    setTimeout(function() {
-                        self.emit(client, key, data);
-                    }, this.clientAvgPing - client.latency.avg);
-            }
+            for (var i in this.clients)
+                this.emit(this.clients[i], key, data);
         },
         clientConnected: function(socket) { 
             console.log('[INFO] Client connected: ' + socket.id);
