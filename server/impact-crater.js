@@ -74,6 +74,7 @@ require(impactLibPath + '/impact/impact.js');
 var express = require('express');
 var http = require('http');
 var app = express();
+app.enable("jsonp callback");
 var server = app.listen(config.port);
 // Setup the websockets
 ig.io = require('socket.io').listen(server);
@@ -90,11 +91,13 @@ app.get('/', function(req, res) {
 });
 
 module.exports = {
+    config: config,
     ig: ig,
     web: app,
     io: ig.io,
     // Start a game
     start: function() {
         require(impactLibPath + '/game/server/main.js');
-    }
+    },
+    beforePageLoad: function(req, res) { }
 };

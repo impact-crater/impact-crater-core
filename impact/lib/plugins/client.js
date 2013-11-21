@@ -7,7 +7,7 @@ ig.module(
 )
 .defines(function() {
     // This class handles all the communications with the server.
-    GameClient = ig.Game.extend({
+    Client = ig.Class.extend({
         mousePos: { x: 0, y: 0 },
         screenPos: { x: 0, y: 0 },
         socket: null,
@@ -42,12 +42,9 @@ ig.module(
                 self.clientDisconnected(data.id);
             }).on('client.reconnect', function(data) {
                 self.clientReconnected(data.id);
+            }).on('system.set-game', function(data) {
+                
             });
-        },
-        update: function() {
-            this.parent();
-            this.checkScreen();
-            this.checkMouse();
         },
         // This client's events
         // ----------------------------------------
@@ -55,9 +52,8 @@ ig.module(
         // Be sure to call this.parent() to remove entities on reconnect
         // if you override this function.
         reconnected: function(socket) { 
-            var self = this;
-            this.entities.forEach(function(ent) {
-                self.removeEntity(ent);
+            ig.game.entities.forEach(function(ent) {
+                ig.game.removeEntity(ent);
             });
         },
         disconnected: function(socket) { },
@@ -69,18 +65,18 @@ ig.module(
         // Entity events
         // ----------------------------------------
         entityCreated: function(data) {
-            var ent = this.spawnEntity(window[data.type], data.x, data.y, data.settings);
+            var ent = ig.game.spawnEntity(window[data.type], data.x, data.y, data.settings);
             ent.type = data.type;
             ig.log('[INFO] Created entity: ' + data.type + ', X: ' + parseInt(data.x) + ', Y: ' + parseInt(data.y) + ', name: ' + data.settings.name);
         },
         entityMoved: function(data) {
-            var entity = this.getEntityByName(data.name); 
+            var entity = ig.game.getEntityByName(data.name); 
             if (!entity) return;
             entity.anim = data.anim;
             entity.nextPos = { x: data.x, y: data.y, a: data.a };
         },
         entityRemoved: function(data) {
-            var entity = this.getEntityByName(data.name);
+            var entity = ig.game.getEntityByName(data.name);
             if (!entity) return;
             ig.log('[INFO] Destroyed entity: ' + entity.type + ', name: ' + entity.name);
             entity.kill();
@@ -92,10 +88,10 @@ ig.module(
         },
         // Notify the server if the screen has moved.
         checkScreen: function() {
-            if (this.screenPos.x != this.screen.x ||
-                this.screenPos.y != this.screen.y) {
-                this.screenPos.x = this.screen.x;
-                this.screenPos.y = this.screen.y;
+            if (this.screenPos.x != ig.game.screen.x ||
+                this.screenPos.y != ig.game.screen.y) {
+                this.screenPos.x = ig.game.screen.x;
+                this.screenPos.y = ig.game.screen.y;
                 this.screenMovement(); 
             }
         },
@@ -110,20 +106,33 @@ ig.module(
         },
         // NOTE: Should add a throttle for the functions below.
         input: function(type, action) {
-            this.socket.emit('input.event', { type: type, action: action });
+            this.emit('input.event', { type: type, action: action });
         },
         screenMovement: function() {
-            this.socket.emit('screen.move', { 
-                x: this.screen.x, 
-                y: this.screen.y 
+            this.emit('screen.move', { 
+                x: ig.game.screen.x, 
+                y: ig.game.screen.y 
             });
         },
         mouseMovement: function() {
-            this.socket.emit('input.mousemove', { 
+            this.emit('input.mousemove', { 
                 x: ig.input.mouse.x, 
                 y: ig.input.mouse.y 
             });
+        },
+        emit: function(key, data) {
+            this.socket.emit(key, data);
         }
+    });
+
+    GameClient = ig.Game.extend({
+        update: function() {
+            this.parent();
+            if (!ig.client) return;
+
+            ig.client.checkScreen();
+            ig.client.checkMouse();
+        },
     });
 
     // This entity should only move when told by the server.
@@ -150,14 +159,14 @@ ig.module(
 
     // Change the input class in place so the server
     // may be notified when an action is triggered.
-    ig.Input = ig.Input.extend({
+    ig.Input.inject({
         triggerEvent: function(event, type) {
             var code = event.type == type 
                 ? event.keyCode 
                 : (event.button == 2 ? ig.KEY.MOUSE2 : ig.KEY.MOUSE1);
             var action = this.bindings[code];
-            if (action && ig.game.input)
-                ig.game.input(type, action);
+            if (action && ig.client.input)
+                ig.client.input(type, action);
         },
         keydown: function(event) {
             this.triggerEvent(event, 'keydown');
@@ -168,4 +177,31 @@ ig.module(
             this.parent(event);
         }
     });
+
+    ig.System.inject({
+        setClient: function(clientClass) {
+            // Wait until a game has been established before
+            // hitting the server.
+            var interval = setInterval(function() {
+                if (ig.game) {
+                    ig.client = new (clientClass)();
+                    clearInterval(interval);
+                }
+            }, 100);
+        }
+    });
+
+    // Rewrite this function to delay and allow the client class to setup.
+    ig.main = function(canvasId, gameClass, fps, width, height, scale, loaderClass) {
+        ig.system = new ig.System(canvasId, fps, width, height, scale || 1);
+        ig.input = new ig.Input();
+        ig.soundManager = new ig.SoundManager();
+        ig.music = new ig.Music();
+        ig.ready = true;
+        
+        var loader = new (loaderClass || ig.Loader)(gameClass, ig.resources);
+        setTimeout(function() {
+            loader.load();
+        }, 100);
+    };
 });

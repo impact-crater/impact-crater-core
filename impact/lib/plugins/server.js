@@ -9,7 +9,7 @@ ig.module(
     'impact.system'
 )
 .defines(function() {
-    GameServer = ig.Game.extend({
+    Server = ig.Class.extend({
         clients: { },
         init: function() {
             var self = this;
@@ -57,7 +57,7 @@ ig.module(
             ig.latency(socket);
             // Send the client all the active entities
             var self = this;
-            this.entities.forEach(function(ent) {
+            ig.game.entities.forEach(function(ent) {
                 self.entityCreate(ent.classType, ent.pos.x, ent.pos.y, ent._settings, socket);
                 self.entityMove(ent, socket);
             });
@@ -72,45 +72,18 @@ ig.module(
             this.broadcast('client.disconnect', { id: socket.id });
             this.clients[socket.id] = undefined;
             // Remove all entities for the client that disconnected.
-            console.log('[INFO] Removing ' + this.entities.length + ' entities');
             // Count down so removing entities doesnt mess anything up.
-            var cnt = this.entities.length - 1;
+            var cnt = ig.game.entities.length - 1;
+            var removed = 0;
             for (var i = cnt; i >= 0; i--) {
-                var ent = this.entities[i];
+                var ent = ig.game.entities[i];
                 // Use removeEntity instead of kill.
-                if (ent.owner == socket.id)
-                    this.removeEntity(this.entities[i]);
+                if (ent.owner == socket.id) {
+                    ig.game.removeEntity(ig.game.entities[i]);
+                    removed++;
+                }
             }
-        },
-        spawnEntity: function(type, x, y, settings) {
-            // Find the key for the entity type
-            var key = '';
-            for (var i in global)
-                if (global[i] == type)
-                    key = i;
-            settings = settings || { };
-            // Give the entity a unique name. This is the entity id.
-            // The server will tell the clients how to move entities based on this id.
-            settings.name = ig.Entity._lastId + 1;
-            settings.classType = key;
-            // If socket is provided then set the owner id
-            if (settings.socket)
-                settings.owner = settings.socket.id;
-            var ent = this.parent(global[key], x, y, settings);
-            // Remove the socket reference before sending it to the clients.
-            var socket = null;
-            if (settings.socket) {
-                socket = settings.socket;
-                settings.owner = socket.id;
-                delete settings.socket;
-            }
-            this.entityCreate(key, ent.pos.x, ent.pos.y, settings);
-            return ent;
-        },
-        removeEntity: function(entity) {
-            if (entity instanceof EntityServer)
-                this.entityRemove(entity);
-            this.parent(entity);
+            console.log('[INFO] Removing ' + removed + ' entities');
         },
         entityCreate: function(typeStr, x, y, settings, toSocket) {
             var data = { type: typeStr, x: x, y: y, settings: settings };
@@ -136,6 +109,45 @@ ig.module(
             var key = 'entity.remove';
             if (toSocket) this.emit(toSocket, key, data);
             else this.broadcast(key, data);
+        },
+        classToString: function(classObj) {
+            // Node has a relatively thin global object so
+            // this is nowhere as stressful as the browser-side.
+            var key = '';
+            for (var i in global)
+                if (global[i] == classObj)
+                    key = i;
+            return key; 
+        }
+    });
+
+    GameServer = ig.Game.extend({
+        spawnEntity: function(type, x, y, settings) {
+            // Find the key for the entity type
+            var key = ig.server.classToString(type);
+            settings = settings || { };
+            // Give the entity a unique name. This is the entity id.
+            // The server will tell the clients how to move entities based on this id.
+            settings.name = ig.Entity._lastId + 1;
+            settings.classType = key;
+            // If socket is provided then set the owner id
+            if (settings.socket)
+                settings.owner = settings.socket.id;
+            var ent = this.parent(global[key], x, y, settings);
+            // Remove the socket reference before sending it to the clients.
+            var socket = null;
+            if (settings.socket) {
+                socket = settings.socket;
+                settings.owner = socket.id;
+                delete settings.socket;
+            }
+            ig.server.entityCreate(key, ent.pos.x, ent.pos.y, settings);
+            return ent;
+        },
+        removeEntity: function(entity) {
+            if (entity instanceof EntityServer)
+                ig.server.entityRemove(entity);
+            this.parent(entity);
         }
     });
 
@@ -181,7 +193,7 @@ ig.module(
                 this.last.y    != cur.y ||
                 this.last.a    != cur.a ||
                 this.last.anim != cur.anim)
-                ig.game.entityMove(this);
+                ig.server.entityMove(this);
         },
         getPos: function() {
             return {
@@ -198,14 +210,14 @@ ig.module(
     });
 
     // No need to loads images, etc.
-    ig.Loader = ig.Loader.extend({
+    ig.Loader.inject({
         load: function() {
             ig.system.setGame(this.gameClass);
         }
     });
 
     // Allow input to be triggered by clients.
-    ig.Input = ig.Input.extend({
+    ig.Input.inject({
         set_keydown: function(action) {
 			this.actions[action] = true;
 			if (!this.locks[action]) {
@@ -219,28 +231,40 @@ ig.module(
     });
 
     // System needs to reset client inputs.
-    ig.System = ig.System.extend({
+    ig.System.inject({
+        gameCnt: 0,
+        setGame: function(gameClass) {
+            this.parent(gameClass);
+            this.gameCnt++;
+            if (this.gameCnt <= 1) return;
+
+            var key = ig.server.classToString(gameClass);
+            ig.server.broadcast('system.set-game', { class: key });
+        },
+        setServer: function(serverClass) {
+            ig.server = new (serverClass)();	
+        },
         run: function() {
             this.parent();
             // Clear all the inputs for the sockets.
-            for (var i in ig.game.clients) {
-                if (ig.game.clients[i] && ig.game.clients[i].input)
-                    ig.game.clients[i].input.clearPressed();
+            for (var i in ig.server.clients) {
+                if (ig.server.clients[i] && ig.server.clients[i].input)
+                    ig.server.clients[i].input.clearPressed();
             }
         }
     });
-    // Extending system for some reason excludes these settings.
-    // But the server doesnt really need them anyway.
-    ig.System.DRAW = {
-        AUTHENTIC: function( p ) { return Math.round(p) * this.scale; },
-        SMOOTH: function( p ) { return Math.round(p * this.scale); },
-        SUBPIXEL: function( p ) { return p * this.scale; }
-    };
-    ig.System.drawMode = ig.System.DRAW.SMOOTH;
 
-    ig.System.SCALE = {
-        CRISP: function( canvas, context ) { },
-        SMOOTH: function( canvas, context ) { }
+    // Rewrite this function to delay and allow the server class to setup.
+    ig.main = function(canvasId, gameClass, fps, width, height, scale, loaderClass) {
+        ig.system = new ig.System(canvasId, fps, width, height, scale || 1);
+        ig.input = new ig.Input();
+        ig.soundManager = new ig.SoundManager();
+        ig.music = new ig.Music();
+        ig.ready = true;
+        
+        var loader = new (loaderClass || ig.Loader)(gameClass, ig.resources);
+        setTimeout(function() {
+            loader.load();
+        }, 100);
     };
-    ig.System.scaleMode = ig.System.SCALE.SMOOTH;
 });
