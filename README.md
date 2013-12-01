@@ -102,6 +102,7 @@ This will start up your project on a seperate process.
 ## TODO
 * Create an actual server script for people who don't want to use the ```impact-server start``` command
 * Move configs to env vars and/org command line args
+* Test out on heroku, etc.
 * Modularize the template so we can provide say board game templates, rpg templates, arcade shooter templates, lobby/session play templates
 * Provide a better logging interface
 * Provide a console mode for server control
