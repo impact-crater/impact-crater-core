@@ -1,12 +1,22 @@
 {
-    "name" : "impact-crater", 
-    "version" : "0.0.2", 
-    "dependencies" : { 
-        "socket.io" : "0.9.16",
-        "express": "3.4.4",
-        "ejs": "0.8.4"
+    "name" : "impact-crater",
+    "version" : "0.0.2",
+    "dependencies" : {
+        "coffee-script":    "1.6.3",
+        "socket.io" :       "0.9.16",
+        "express":          "3.4.4",
+        "ejs":              "0.8.4",
+        "log":              "1.4.0",
+        "yargs":            "1.0.7"
+    },
+    "engines": {
+        "node": ">= 0.8.x",
+        "npm":  ">= 1.1.x"
     },
     "scripts": {
         "start": "node server/start.js"
+    },
+    "bin": {
+        "impact-crater": "./bin/impact-crater"
     }
 }
