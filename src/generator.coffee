@@ -77,4 +77,9 @@ class Generator
       @copy "#{@templateDir}/basic/#{file}", "#{@path}/#{file}", (err, to)=>
         @rename "#{@path}/gitignore", "#{@path}/.gitignore" if to is "#{@path}/gitignore"
 
+    @mkdir("#{@path}/bin")
+    @copy "#{@templateDir}/basic/bin/server","#{@path}/bin/server", (err, binPath)=>
+      Fs.chmodSync binPath, 0o755
+
+
 module.exports = Generator
