@@ -6,10 +6,10 @@ Fs        = require 'fs'
 Path      = require 'path'
 
 Options =
-  port:       process.env.IMPACT_CRATER_PORT      or '9000'
+  # port:       process.env.IMPACT_CRATER_PORT      or '9000'
   path:       process.env.IMPACT_CRATER_PATH      or '.'
   logging:    process.env.IMPACT_CRATER_LOG_LEVEL or 'info'
-  dashboard:  process.env.IMPACT_CRATER_DASHBOARD or false
+  # dashboard:  process.env.IMPACT_CRATER_DASHBOARD or false
 
 usage = """
 
@@ -26,7 +26,7 @@ To setup an impact-crater project:
 $ impact-crater generate [optional/path/to/generate]
 
 To run an impact-crater project:
-/path/of/project $ impact-crater start -p 8000
+/path/of/project $ impact-crater start
 """
 
 yargs  = require('yargs').alias('l', 'logging')
