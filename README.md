@@ -33,7 +33,7 @@ Then cd into it, and run:
 ```npm link```
 
 ###NPM Installation
-```npm install impact-crater -g```
+```npm install -g impact-crater coffee-script```
 
 This will give you a bin called ```impact-crater```. To make a new impact-crater project run the following:
 ```impact-crater generate [path/to/my-mp-game]```
