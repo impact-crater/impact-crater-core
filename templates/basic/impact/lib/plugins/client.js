@@ -6,6 +6,34 @@ ig.module(
     'impact.entity'
 )
 .defines(function() {
+    // Borrowed from underscore.js
+    ig.throttle = function(func, wait, options) {
+        var context, args, result;
+        var timeout = null;
+        var previous = 0;
+        options || (options = {});
+        var later = function() {
+            previous = options.leading === false ? 0 : new Date;
+            timeout = null;
+            result = func.apply(context, args);
+        };
+        return function() {
+            var now = new Date;
+            if (!previous && options.leading === false) previous = now;
+            var remaining = wait - (now - previous);
+            context = this;
+            args = arguments;
+            if (remaining <= 0) {
+                clearTimeout(timeout);
+                timeout = null;
+                previous = now;
+                result = func.apply(context, args);
+            } else if (!timeout && options.trailing !== false) {
+                timeout = setTimeout(later, remaining);
+            }
+            return result;
+        };
+    };
     // This class handles all the communications with the server.
     Client = ig.Class.extend({
         mousePos: { x: 0, y: 0 },
@@ -13,16 +41,25 @@ ig.module(
         socket: null,
         init: function() {
             var self = this;
+            var clientColor = '#e87511';
+            var moves = 0;
+            var throttledMove = ig.throttle(function() {
+                ig.mark('entity.move: ' + moves, clientColor);
+                moves = 0;
+            }, 2000);
             if (typeof ClientHost == "undefined")
                 throw 'ClientHostNotSetError. Set the ClientHost in index.html.';
             this.socket = io.connect(ClientHost);
             // This client's events
             this.socket.on('connect', function() {
-               self.connected(this); 
+                ig.mark('io.connect', clientColor);
+                self.connected(this); 
             }).on('reconnect', function() {
-               self.reconnected(this);
+                ig.mark('io.reconnect', clientColor);
+                self.reconnected(this);
             }).on('disconnect', function() {
-               self.disconnected(this); 
+                ig.mark('io.disconnect', clientColor);
+                self.disconnected(this); 
             // Latency events
             }).on('ping', function() {
                 this.emit('pong');
@@ -30,17 +67,24 @@ ig.module(
                 // Do something with the latency
             // Entity events
             }).on('entity.create', function(data) {
+                ig.mark('entity.create', clientColor);
                 self.entityCreated(data);
             }).on('entity.move', function(data) {
+                moves++;
+                throttledMove();
                 self.entityMoved(data);
             }).on('entity.remove', function(data) {
+                ig.mark('entity.remove', clientColor);
                 self.entityRemoved(data);
             // Other client events
             }).on('client.connect', function(data) {
+                ig.mark('client.connect', clientColor);
                 self.clientConnected(data.id);
             }).on('client.disconnect', function(data) {
+                ig.mark('client.disconnect', clientColor);
                 self.clientDisconnected(data.id);
             }).on('client.reconnect', function(data) {
+                ig.mark('client.reconnect', clientColor);
                 self.clientReconnected(data.id);
             }).on('system.set-game', function(data) {
                 
@@ -105,16 +149,37 @@ ig.module(
             }
         },
         // NOTE: Should add a throttle for the functions below.
+        _inputEvents: 0,
+        _inputMarkThrottle: ig.throttle(function() { 
+            ig.mark('input.event: ' + ig.client._inputEvents, '#fada5e');
+            ig.client._inputEvents = 0;
+        }, 2000),
         input: function(type, action) {
+            this._inputEvents++;
+            this._inputMarkThrottle();
             this.emit('input.event', { type: type, action: action });
         },
+        _screenEvents: 0,
+        _screenMarkThrottle: ig.throttle(function() { 
+            ig.mark('screen.move: ' + ig.client._screenEvents, '#fada5e');
+            ig.client._screenEvents = 0;
+        }, 2000),
         screenMovement: function() {
+            this._screenEvents++;
+            this._screenMarkThrottle();
             this.emit('screen.move', { 
                 x: ig.game.screen.x, 
                 y: ig.game.screen.y 
             });
         },
+        _mouseEvents: 0,
+        _mouseMarkThrottle: ig.throttle(function() { 
+            ig.mark('mouse.move: ' + ig.client._mouseEvents, '#fada5e');
+            ig.client._mouseEvents = 0;
+        }, 2000),
         mouseMovement: function() {
+            this._mouseEvents++;
+            this._mouseMarkThrottle();
             this.emit('input.mousemove', { 
                 x: ig.input.mouse.x, 
                 y: ig.input.mouse.y 
