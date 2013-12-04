@@ -1,0 +1,65 @@
+#!/usr/bin/env coffee
+
+Generator = require '../src/generator'
+Server    = require '../src/server'
+Fs        = require 'fs'
+Path      = require 'path'
+
+Options =
+  # port:       process.env.IMPACT_CRATER_PORT      or '9000'
+  path:       process.env.IMPACT_CRATER_PATH      or '.'
+  logging:    process.env.IMPACT_CRATER_LOG_LEVEL or 'info'
+  # dashboard:  process.env.IMPACT_CRATER_DASHBOARD or false
+
+usage = """
+
+Run or generate impact-crater projects.
+
+Usage: impact-crater <command>
+
+
+"""
+
+examples = """
+
+To setup an impact-crater project:
+$ impact-crater generate [optional/path/to/generate]
+
+To run an impact-crater project:
+/path/of/project $ impact-crater start
+"""
+
+yargs  = require('yargs').alias('l', 'logging')
+                         .describe('logging', 'Set how verbose impact-crater should be.')
+                         # .alias('d', 'dashboard')
+                         # .describe('dashboard', 'Show the server dashboard')
+                         # .alias('p', 'port')
+                         # .describe('port', 'Set the port you want impact-crater running on.')
+
+
+unless process.platform is "win32"
+  process.on 'SIGTERM', ->
+    process.exit 0
+
+if yargs.logging
+  Options.logging = yargs.logging
+
+# if yargs.argv.d
+#   Options.dashboard = true
+
+# if yargs.port
+#   Options.port = yargs.port
+
+if yargs.argv._[0] is 'generate'
+  generatorPath = yargs.argv._[1] or Options.path
+
+  generator = new Generator(generatorPath, Options)
+  generator.run()
+
+else if yargs.argv._[0] is 'start'
+  serverPath = yargs.argv._[1] or Options.path
+  server = new Server(serverPath,Options)
+  server.run()
+
+else
+  console.log "#{usage}#{yargs.help()}#{examples}"

@@ -4,9 +4,9 @@
 Please be aware this project is highly experimental and the API will change rapidly.
 ```
 
-Impact.js meet the world of multiplayer! Take the excellent Impact.js framework and 
+Impact.js meet the world of multiplayer! Take the excellent Impact.js framework and
 expand your game to include multiplayer. I have seen many attempts to transform Impact.js into a
-multiplayer framework with little success. The main problem being the clients control the game. 
+multiplayer framework with little success. The main problem being the clients control the game.
 Impact-crater is an authoritative server meaning the server makes all the moves and the clients are
 merely controllers sending commands to the server. Game development is basically the same, the largest
 difference you will notice is the seperation of client and server code, trust me it's still simple and fun.
@@ -19,19 +19,25 @@ If you have an ImpactJS license be sure to check out the demo at:
 
 ## Setup
 
-To get started with impact-crater you need to install the nodejs package. 
+To get started with impact-crater you need to install the nodejs package.
 
     yum install nodejs      # CentOS
     apt-get install nodejs  # Debian
     brew install nodejs     # MacOS X
-    
+
 Once you have installed nodejs you need to checkout the code.
 
-    git clone git@github.com:cha55son/impact-crater.git my-mp-game
-    
-Run `npm install` to install the required node packages. (npm should come with nodejs or as an additional package)
+###Git installation
+```git clone git@github.com:cha55son/impact-crater.git```
+Then cd into it, and run:
+```npm link```
 
-You should see the following structure. I will list the important files.
+###NPM Installation
+```npm install -g impact-crater coffee-script```
+
+This will give you a bin called ```impact-crater```. To make a new impact-crater project run the following:
+```impact-crater generate [path/to/my-mp-game]```
+This will setup the folder structure needed to use impact-crater. You should see the following structure. I will list the important files.
 
     my-mp-game/
       impact/ --------- You will need to unzip your impact directory here
@@ -42,16 +48,11 @@ You should see the following structure. I will list the important files.
       public/
         index.ejs.example ----- Template file for your game screen.
       server/
-        start.js.example ------ The file used to start the server. 
-        config.js.example ----- Settings for the server. 
+        start.js.example ------ The file used to start the server.
+        config.js.example ----- Settings for the server.
 
-For the server to function properly you will need to copy all `.example` files to their respective file names without the `.example`. Edit the files to suit your application. You can use the following linux command to find the `.example` files.
+Next unzip your copy of impact.js over the my-mp-game/impact folder.
 
-    find . -name '*.example'
-
-Be sure you unzip your copy of impact over the my-mp-game/impact directory. If you
-can't unzip onto of the impact folder or merge into it, then simply copy the `lib/plugins` folder. 
-Delete the impact directory and slide your real `impact` folder into place and paste the `lib/plugins`.
 Once you do that your file structure should look like the following:
 
     my-mp-game/
@@ -68,13 +69,11 @@ Once you do that your file structure should look like the following:
           plugins/
           weltmeister/
         media/
-        tools/
-        
-Notice the server folder under the game folder. This is required by impact-crater to
-differientiate between your server and client code. 
-As you develop your games for multiplayer you will have to start thinking of entities from two points of
+        tools/yo
+
+Notice the server folder under the game folder. This is required by impact-crater to differientiate between your server and client code. As you develop your games for multiplayer you will have to start thinking of entities from two points of
 view, client-side and server-side.
-        
+
 ## Config
 
 This part is pretty easy. You simply need to specify a host and port in the config file. Be sure to copy it to `server/config.js`.
@@ -83,10 +82,13 @@ This part is pretty easy. You simply need to specify a host and port in the conf
       server/
         config.js.example - Copy this file to config.js and set the host, port
 
-## Starting the server
+## If You've installed Via NPM
+Run ```npm link /path/to/impact-crater/``` so it will use the package you checked out instead of pulling one down.
 
-To start the server all you need to do is run `node server/start.js`. The server now uses the express web server and will handle serving the game files.
-      
+## Starting the server
+```impact-crater start [path/to/my-mp-game]```
+This will start up your project on a seperate process.
+
 ## Docs
 
 ###### Client Classes
@@ -97,5 +99,13 @@ To start the server all you need to do is run `node server/start.js`. The server
 * [GameServer](https://github.com/cha55son/impact-crater/wiki/GameServer)
 * [EntityServer](https://github.com/cha55son/impact-crater/wiki/EntityServer)
 
+## TODO
+* Create an actual server script for people who don't want to use the ```impact-server start``` command
+* Move configs to env vars and/org command line args
+* Test out on heroku, etc.
+* Modularize the template so we can provide say board game templates, rpg templates, arcade shooter templates, lobby/session play templates
+* Provide a better logging interface
+* Provide a console mode for server control
+* Watch the serverProcess so we can restart it potentially
+* Allow for several servers to run at the same time
 
-        
