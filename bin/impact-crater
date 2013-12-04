@@ -29,12 +29,12 @@ To run an impact-crater project:
 /path/of/project $ impact-crater start -p 8000
 """
 
-yargs  = require('yargs').alias('p', 'port')
-                         .describe('port', 'Set the port you want impact-crater running on.')
-                         .alias('l', 'logging')
+yargs  = require('yargs').alias('l', 'logging')
                          .describe('logging', 'Set how verbose impact-crater should be.')
-                         .alias('d', 'dashboard')
-                         .describe('dashboard', 'Show the server dashboard')
+                         # .alias('d', 'dashboard')
+                         # .describe('dashboard', 'Show the server dashboard')
+                         # .alias('p', 'port')
+                         # .describe('port', 'Set the port you want impact-crater running on.')
 
 
 unless process.platform is "win32"
@@ -44,11 +44,11 @@ unless process.platform is "win32"
 if yargs.logging
   Options.logging = yargs.logging
 
-if yargs.argv.d
-  Options.dashboard = true
+# if yargs.argv.d
+#   Options.dashboard = true
 
-if yargs.port
-  Options.port = yargs.port
+# if yargs.port
+#   Options.port = yargs.port
 
 if yargs.argv._[0] is 'generate'
   generatorPath = yargs.argv._[1] or Options.path
