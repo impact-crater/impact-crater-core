@@ -3,8 +3,9 @@ Path  = require 'path'
 Log   = require 'log'
 
 class Generator
-  constructor: (path, opts) ->
-    @path = path
+  constructor: (opts) ->
+    @path = opts.path
+    @type = opts.type
     @templateDir = "#{__dirname}/../templates"
     @logger = new Log(opts.logging)
 
