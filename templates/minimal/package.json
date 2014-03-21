@@ -1,11 +1,14 @@
 {
-    "name" : "my-impact-crater-project",
-    "version" : "0.0.0",
-    "dependencies" : {
-      "impact-crater": "0.0.2"
-    },
-    "engines": {
-      "node": ">= 0.8.x",
-      "npm": ">= 1.1.x"
-    }
+  "name": "my-impact-crater-project",
+  "version": "0.0.0",
+  "dependencies": {
+    "coffee-script": "1.6.3",
+    "socket.io": "0.9.16",
+    "express": "3.4.4",
+    "ejs": "0.8.4"
+  },
+  "engines": {
+    "node": ">= 0.8.x",
+    "npm": ">= 1.1.x"
+  }
 }

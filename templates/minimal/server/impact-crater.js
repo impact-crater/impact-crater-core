@@ -1,11 +1,11 @@
 var path = require('path');
 var fs = require('fs');
 
-modules.exports = function(path) {
-    var scriptPath = path || __dirname;
+module.exports = function(serverPath) {
+    var scriptPath = serverPath || __dirname;
+    process.chdir(scriptPath);
 
     try {
-        console.log(scriptPath + '/config.js');
         var config = require(scriptPath + '/config.js');
     } catch (err) {
         throw "Missing config.js. Run 'cp server/config.js.example server/config.js'.";
@@ -75,17 +75,17 @@ modules.exports = function(path) {
     require(impactLibPath + '/impact/impact.js');
 
     // Setup the webserver
-    var express = require('impact-crater/node_modules/express');
+    var express = require('express');
     var http = require('http');
     var app = express();
     app.enable("jsonp callback");
     var server = app.listen(config.port);
     // Setup the websockets
-    ig.io = require('impact-crater/node_modules/socket.io').listen(server);
+    ig.io = require('socket.io').listen(server);
     ig.io.set('log level', 1);
 
     // Setup the latency checking
-    ig.latency = require(__dirname + '/latency');
+    ig.latency = require(scriptPath + '/latency');
 
     // Setup routes and asset paths
     app.use(express.static(publicPath));

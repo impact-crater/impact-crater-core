@@ -1,6 +1,7 @@
 Path  = require 'path'
 Fs    = require 'fs'
 Dir   = require 'node-dir'
+Exec  = require 'exec-sync'
 
 templatePath = Fs.realpathSync __dirname + '/../templates'
 
@@ -41,6 +42,9 @@ class Generator
             @copy filePath, newPath unless @development
         # Handle executable files
         Fs.chmodSync "#{@path}/bin/server", 0o0755
+        try
+            console.log "    [INFO] Installing node modules..."
+            Exec "cd #{@path} && npm install"
         console.log "    [SUCCESS] Finished creating project in '#{@path}'."
 
 module.exports = Generator
