@@ -16,8 +16,8 @@ class Generator
     Fs.mkdirSync(path, 0o0755) unless Fs.existsSync path
 
   copy: (from, to) ->
-    fromData = Fs.readFileSync from, "utf8"
-    Fs.writeFileSync to, fromData, "utf8"
+    fromData = Fs.readFileSync from
+    Fs.writeFileSync to, fromData
 
   link: (from, to) ->
       Fs.symlinkSync from, to unless Fs.existsSync to

@@ -54,13 +54,13 @@ Next unzip your copy of impact.js over the path/to/my-mp-game/impact folder. If 
     cd path/to/my-mp-game
     unzip ~/Desktop/impact-1.23.zip
 
-*Important*: Unzipping impact.zip will overwrite an important file in the template. We created a side copy at `impact/lib/game/main.js.side`. You just need to copy it into place:
+*Important*: Unzipping impact-1.23.zip will overwrite an important file in the template. We created a side copy at `impact/lib/game/main.js.side`. You just need to copy it into place:
 
     cp impact/lib/game/main.js.side impact/lib/game/main.js
 
 ### Config
 
-This part is pretty easy. You simply need to specify a host and port in the config file.
+Make sure the options in the config file are suitable for your environment.
 
     vim server/config.js
 
@@ -77,7 +77,7 @@ By default the port is 3000 so visit the following URL in your browser:
 
     http://localhost:3000
 
-and you should see a game screen.
+and you should see a game screen. The example template will setup a very simple game using the impact-crater classes that allow for network interaction. You will see a player that you can move with WASD keys. The tree entity is just a drone that moves on its own. If you look at the code you will see that none of the movement is being generated on the client. It's receiving all the movement commands from the server.
 
 ## Notes
 
