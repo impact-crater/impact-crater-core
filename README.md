@@ -34,6 +34,8 @@ Then cd into it, and run:
     cd impact-crater-core
     npm link
 
+### Create project
+
 To make a new impact-crater project run the following:
 
     impact-crater generate path/to/my-mp-game example
@@ -52,9 +54,29 @@ This will setup the folder structure needed to use impact-crater. You should see
         start.js.example ------ The file used to start the server.
         config.js.example ----- Settings for the server.
 
-Next unzip your copy of impact.js over the path/to/my-mp-game/impact folder.
+Next unzip your copy of impact.js over the path/to/my-mp-game/impact folder. If the zip file is on your desktop the command will look like this:
 
-Once you do that your file structure should look like the following:
+    cd path/to/my-mp-game
+    unzip ~/Desktop/impact-1.23.zip
+
+### Config
+
+This part is pretty easy. You simply need to specify a host and port in the config file.
+
+    vim path/to/my-mp-game/server/config.js
+
+## Starting the server
+
+    impact-crater start path/to/my-mp-game
+
+    ---- or ----
+
+    cd path/to/my-mp-game
+    impact-crater start
+
+## Notes
+
+After installation your file structure should look like the following:
 
     my-mp-game/
       impact/
@@ -63,7 +85,7 @@ Once you do that your file structure should look like the following:
             entities/
             levels/
             main.js
-            server/ (This is required and your server entities/main.js will go here!)
+            server/ <------ This is required and your server entities/main.js will go here!
               entities/
               main.js
           impact/
@@ -74,20 +96,6 @@ Once you do that your file structure should look like the following:
 
 Notice the server folder under the game folder. This is required by impact-crater to differientiate between your server and client code. As you develop your games for multiplayer you will have to start thinking of entities from two points of
 view, client-side and server-side.
-
-## Config
-
-This part is pretty easy. You simply need to specify a host and port in the config file. Be sure to copy it to `server/config.js`.
-
-    my-mp-game/
-      server/
-        config.js.example - Copy this file to config.js and set the host, port
-
-## Starting the server
-
-    impact-crater start path/to/my-mp-game
-
-This will start up your project on a seperate process.
 
 ## Docs
 
