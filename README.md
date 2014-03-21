@@ -13,11 +13,13 @@ difference you will notice is the seperation of client and server code, trust me
 
 To get started with impact-crater you need to install the nodejs package.
 
-    yum install nodejs      # CentOS
+    yum install npm         # CentOS
     apt-get install nodejs  # Debian
     brew install nodejs     # MacOS X
 
-Once you have installed nodejs you need to checkout the code.
+Next you need to install coffee script for the impact-crater command to run properly.
+
+    npm install -g coffee-script
 
 ### Git installation
 
