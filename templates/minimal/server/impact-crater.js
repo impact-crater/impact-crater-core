@@ -1,103 +1,108 @@
 var path = require('path');
 var fs = require('fs');
 
-try {
-    var config = require(__dirname + '/config.js');
-} catch (err) {
-    throw "Missing config.js. Run 'cp server/config.js.example server/config.js'.";
-}
+modules.exports = function(path) {
+    var scriptPath = path || __dirname;
 
-// Setup paths
-var root = path.dirname(__dirname);
-var impactPath = root + '/' + config.impact;
-var impactLibPath = impactPath + '/lib';
-var publicPath = root + '/' + config.assets;
+    try {
+        console.log(scriptPath + '/config.js');
+        var config = require(scriptPath + '/config.js');
+    } catch (err) {
+        throw "Missing config.js. Run 'cp server/config.js.example server/config.js'.";
+    }
 
-if (!fs.existsSync(publicPath + '/index.ejs'))
-    throw "Missing index.ejs. Run 'cp public/index.ejs.example public/index.ejs'.";
+    // Setup paths
+    var root = path.dirname(scriptPath);
+    var impactPath = root + '/' + config.impact;
+    var impactLibPath = impactPath + '/lib';
+    var publicPath = root + '/' + config.assets;
 
-// Alter the env to allow impact
-// to run without DOM interaction.
-var Canvas = function() {
-    return {
-        addEventListener: function() { },
-        style: { },
-        getContext: function() {
-            // This is the context
-            return {
-                save: function() { },
-                translate: function() { },
-                rotate: function() { },
-                restore: function() { },
-                drawImage: function() { },
-                strokeRect: function() { },
-                beginPath: function() { },
-                moveTo: function() { },
-                lineTo: function() { },
-                stroke: function() { },
-                clearPath: function() { },
-                scale: function() { },
-                fillRect: function() { }
-            };
+    if (!fs.existsSync(publicPath + '/index.ejs'))
+        throw "Missing index.ejs. Run 'cp public/index.ejs.example public/index.ejs'.";
+
+    // Alter the env to allow impact
+    // to run without DOM interaction.
+    var Canvas = function() {
+        return {
+            addEventListener: function() { },
+            style: { },
+            getContext: function() {
+                // This is the context
+                return {
+                    save: function() { },
+                    translate: function() { },
+                    rotate: function() { },
+                    restore: function() { },
+                    drawImage: function() { },
+                    strokeRect: function() { },
+                    beginPath: function() { },
+                    moveTo: function() { },
+                    lineTo: function() { },
+                    stroke: function() { },
+                    clearPath: function() { },
+                    scale: function() { },
+                    fillRect: function() { }
+                };
+            }
+        };
+    };
+    global.window = global;
+    global.ImpactMixin = {
+        module: function() { return ig; },
+        requires: function() {
+            var requires = Array.prototype.slice.call(arguments);
+            // Go ahead and require the proper files
+            requires.forEach(function(name) {
+                // Ignore any dom ready type stuff on the server.
+                if (name == 'dom.ready') return;
+                var path = name.replace(/\./g, '/');
+                require(impactLibPath + '/' + path);
+            });
+            return ig;
+        },
+        defines: function(func) {
+            func(); // immediately execute
+        },
+        $: function(selector) {
+            return new Canvas();
         }
     };
-};
-global.window = global;
-global.ImpactMixin = {
-    module: function() { return ig; },
-    requires: function() {
-        var requires = Array.prototype.slice.call(arguments);
-        // Go ahead and require the proper files
-        requires.forEach(function(name) {
-            // Ignore any dom ready type stuff on the server.
-            if (name == 'dom.ready') return;
-            var path = name.replace(/\./g, '/');
-            require(impactLibPath + '/' + path);
-        });
-        return ig;
-    },
-    defines: function(func) {
-        func(); // immediately execute
-    },
-    $: function(selector) {
-        return new Canvas();
-    }
-};
-window.document = { };
-window.addEventListener = function() { };
+    window.document = { };
+    window.addEventListener = function() { };
 
-// Canvas should be the only element impact uses on the server.
-window.HTMLElement = Canvas;
-require(impactLibPath + '/impact/impact.js');
+    // Canvas should be the only element impact uses on the server.
+    window.HTMLElement = Canvas;
+    require(impactLibPath + '/impact/impact.js');
 
-// Setup the webserver
-var express = require('impact-crater/node_modules/express');
-var http = require('http');
-var app = express();
-app.enable("jsonp callback");
-var server = app.listen(config.port);
-// Setup the websockets
-ig.io = require('impact-crater/node_modules/socket.io').listen(server);
-ig.io.set('log level', 1);
+    // Setup the webserver
+    var express = require('impact-crater/node_modules/express');
+    var http = require('http');
+    var app = express();
+    app.enable("jsonp callback");
+    var server = app.listen(config.port);
+    // Setup the websockets
+    ig.io = require('impact-crater/node_modules/socket.io').listen(server);
+    ig.io.set('log level', 1);
 
-// Setup the latency checking
-ig.latency = require(__dirname + '/latency');
+    // Setup the latency checking
+    ig.latency = require(__dirname + '/latency');
 
-// Setup routes and asset paths
-app.use(express.static(publicPath));
-app.use('/impact', express.static(impactPath));
-app.get('/', function(req, res) {
-    res.render(publicPath + '/index.ejs', { config: config });
-});
+    // Setup routes and asset paths
+    app.use(express.static(publicPath));
+    app.use('/impact', express.static(impactPath));
+    app.get('/', function(req, res) {
+        res.render(publicPath + '/index.ejs', { config: config });
+    });
 
-module.exports = {
-    config: config,
-    ig: ig,
-    web: app,
-    io: ig.io,
-    // Start a game
-    start: function() {
-        require(impactLibPath + '/game/server/main.js');
-    },
-    beforePageLoad: function(req, res) { }
+    return {
+        config: config,
+        ig: ig,
+        web: app,
+        io: ig.io,
+        // Start a game
+        start: function() {
+            require(impactLibPath + '/game/server/main.js');
+        },
+        beforePageLoad: function(req, res) { }
+    };
 };
