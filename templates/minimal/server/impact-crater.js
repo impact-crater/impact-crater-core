@@ -3,7 +3,8 @@ var fs = require('fs');
 
 module.exports = function(serverPath) {
     var scriptPath = serverPath || __dirname;
-    process.chdir(scriptPath);
+    var root = path.dirname(scriptPath);
+    process.chdir(root);
 
     try {
         var config = require(scriptPath + '/config.js');
@@ -12,7 +13,6 @@ module.exports = function(serverPath) {
     }
 
     // Setup paths
-    var root = path.dirname(scriptPath);
     var impactPath = root + '/' + config.impact;
     var impactLibPath = impactPath + '/lib';
     var publicPath = root + '/' + config.assets;

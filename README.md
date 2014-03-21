@@ -9,12 +9,6 @@ Impact-crater is an authoritative server meaning the server makes all the moves 
 merely controllers sending commands to the server. Game development is basically the same, the largest
 difference you will notice is the seperation of client and server code, trust me it's still simple and fun.
 
-Check out the following tutorial for a more in-depth look.
-[Simple Multiplayer Tutorial](https://github.com/impact-crater/impact-crater-core/wiki/Simple-Multiplayer-Tutorial)
-
-If you have an ImpactJS license be sure to check out the demo at:
-[impactjs forum post](http://impactjs.com/forums/private/easy-authoritative-impactjs-server)
-
 ## Setup
 
 To get started with impact-crater you need to install the nodejs package.
@@ -43,27 +37,32 @@ To make a new impact-crater project run the following:
 This will setup the folder structure needed to use impact-crater. You should see the following structure. I will list the important files.
 
     my-mp-game/
-      impact/ <-------- You will need to unzip your impact directory here
-        lib/
-          plugins/
-            client.js - Plugin code to bootstrap clients for multiplayer.
-            server.js - Plugin code to boostrap the server for multiplayer.
-      public/
-        index.ejs.example ----- Template file for your game screen.
-      server/
-        start.js.example ------ The file used to start the server.
-        config.js.example ----- Settings for the server.
+        ├── impact/
+        │   ├── lib/
+        │   │   ├── game/
+        │   │   ├── plugins/
+        │   │   │   ├── client.js - The plugins for network access
+        │   │   │   └── server.js
+        │   ├── media/
+        ├── public/
+        │   └── index.ejs --------- HTML file for your game
+        ├── server/
+        │   ├── config.js --------- Settings for the server
 
 Next unzip your copy of impact.js over the path/to/my-mp-game/impact folder. If the zip file is on your desktop the command will look like this:
 
     cd path/to/my-mp-game
     unzip ~/Desktop/impact-1.23.zip
 
+*Important*: Unzipping impact.zip will overwrite an important file in the template. We created a side copy at `impact/lib/game/main.js.side`. You just need to copy it into place:
+
+    cp impact/lib/game/main.js.side impact/lib/game/main.js
+
 ### Config
 
 This part is pretty easy. You simply need to specify a host and port in the config file.
 
-    vim path/to/my-mp-game/server/config.js
+    vim server/config.js
 
 ## Starting the server
 
@@ -74,25 +73,31 @@ This part is pretty easy. You simply need to specify a host and port in the conf
     cd path/to/my-mp-game
     impact-crater start
 
+By default the port is 3000 so visit the following URL in your browser:
+
+    http://localhost:3000
+
+and you should see a game screen.
+
 ## Notes
 
 After installation your file structure should look like the following:
 
     my-mp-game/
-      impact/
-        lib/
-          game/
-            entities/
-            levels/
-            main.js
-            server/ <------ This is required and your server entities/main.js will go here!
-              entities/
-              main.js
-          impact/
-          plugins/
-          weltmeister/
-        media/
-        tools/yo
+        ├── impact/
+        │   ├── lib/
+        │   │   ├── game/
+        │   │   │   ├── entities/
+        │   │   │   ├── levels/
+        │   │   │   ├── main.js
+        │   │   │   └── server/
+        │   │   │       ├── entities/
+        │   │   │       └── main.js
+        │   │   ├── impact/
+        │   │   ├── plugins/
+        │   │   └── weltmeister/
+        │   ├── media/
+        │   ├── tools/
 
 Notice the server folder under the game folder. This is required by impact-crater to differientiate between your server and client code. As you develop your games for multiplayer you will have to start thinking of entities from two points of
 view, client-side and server-side.
