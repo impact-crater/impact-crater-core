@@ -85,7 +85,8 @@ By default the port is 3000 so visit the following URL in your browser:
 
     http://localhost:3000
 
-and you should see a game screen. The example template will setup a very simple game using the impact-crater classes that allow for network interaction. You will see a player that you can move with WASD keys. The tree entity is just a drone that moves on its own. If you look at the code you will see that none of the movement is being generated on the client. It's receiving all the movement commands from the server.
+and you should see a game screen. The example template will setup a very simple game using the impact-crater classes that allow for network interaction. You will see a player that you can move with WASD keys. The tree entity is just a drone that moves on its own. If you look at the code you will see that none of the movement is being generated on the client. It's receiving all the movement commands from the server. To truly see the network interaction, duplicate your current browser window
+and you should now see two characters on the screen. Both characters should move independently.
 
 ## Notes
 
