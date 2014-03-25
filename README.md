@@ -23,7 +23,13 @@ Next you need to install coffee script for the impact-crater command to run prop
 
 ### Git installation
 
+    git clone --recursive git@github.com:impact-crater/impact-crater-core.git
+
+    --- or ---
+
     git clone git@github.com:impact-crater/impact-crater-core.git
+    cd impact-crater-core
+    git submodule update --init
 
 Now run:
 
@@ -34,7 +40,7 @@ Now run:
 
 To make a new impact-crater project run the following:
 
-    impact-crater generate path/to/my-mp-game example
+    impact-crater generate path/to/my-mp-game simple-game
 
 This will setup the folder structure needed to use impact-crater. You should see the following structure. I will list the important files.
 

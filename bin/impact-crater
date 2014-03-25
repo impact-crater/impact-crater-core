@@ -10,7 +10,7 @@ options =
   port:       process.env.IMPACT_CRATER_PORT      or '9000'
   path:       process.env.IMPACT_CRATER_PATH      or '.'
   logging:    process.env.IMPACT_CRATER_LOG_LEVEL or 'info'
-  type:       'example'
+  type:       'simple-game'
   development: false
 
 usage = """
@@ -23,11 +23,11 @@ Commands:
   generate - Create a game type from a template.
 
              Available Types:
-             * minimal: Only the files needed to start the server.
-             * example: Very simple game with a movable character.
+             * minimal:     Only the files needed to start the server.
+             * simple-game: Very simple game with a movable character.
 
                Usage: impact-crater generate <path> <type>
-             Example: impact-crater generate games/crater-test example
+             Example: impact-crater generate games/crater-test simple-game
 
      start - Start an impact-crater server.
 
