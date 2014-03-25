@@ -2,3 +2,7 @@
 	path = templates/minimal
 	url = https://github.com/impact-crater/game-templates.git
 	branch = minimal
+[submodule "templates/simple-game"]
+	path = templates/simple-game
+	url = https://github.com/impact-crater/game-templates.git
+	branch = simple-game
