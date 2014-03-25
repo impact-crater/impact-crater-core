@@ -25,7 +25,7 @@ Next you need to install coffee script for the impact-crater command to run prop
 
     git clone git@github.com:impact-crater/impact-crater-core.git
 
-Then cd into it, and run:
+Now run:
 
     cd impact-crater-core
     npm link

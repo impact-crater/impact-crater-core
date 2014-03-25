@@ -29,6 +29,7 @@ class Generator
     # Scan all the files/dirs in the template directory and copy to @path.
     Dir.paths @templatePath, (err, paths) =>
         if err 
+            console.log err
             console.log "    [ERROR] Template: '#{@type}' not found. Exiting."
             return false
         # Create directories

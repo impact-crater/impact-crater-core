@@ -1,6 +1,0 @@
-#!/bin/sh
-
-npm install
-export PATH="node_modules/.bin:node_modules/impact-crater/node_modules/.bin:$PATH"
-
-exec impact-crater start
