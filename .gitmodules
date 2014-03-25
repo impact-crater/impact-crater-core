@@ -1,0 +1,4 @@
+[submodule "templates/minimal"]
+	path = templates/minimal
+	url = https://github.com/impact-crater/game-templates.git
+	branch = minimal

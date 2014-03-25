@@ -1,1 +1,0 @@
-/Users/chason/Sites/impact-crater/templates/minimal/impact/lib/plugins/server.js
