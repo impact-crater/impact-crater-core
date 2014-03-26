@@ -1,85 +1,52 @@
-Fs    = require 'fs'
 Path  = require 'path'
-Log   = require 'log'
+Fs    = require 'fs'
+Dir   = require 'node-dir'
+Exec  = require 'exec-sync'
+
+templatePath = Fs.realpathSync __dirname + '/../templates'
 
 class Generator
-  constructor: (path, opts) ->
-    @path = path
-    @templateDir = "#{__dirname}/../templates"
-    @logger = new Log(opts.logging)
+  constructor: (opts) ->
+    @path = opts.path
+    @type = opts.type
+    @development = opts.development
+    @templatePath = "#{templatePath}/#{@type}"
 
-  # Make a directory
   mkdir: (path) ->
-    Fs.exists path, (exists)->
-      unless exists
-        Fs.mkdirSync path, 0o0755
+    Fs.mkdirSync(path, 0o0755) unless Fs.existsSync path
 
-  # Copy a file
-  copy: (from, to, callback) ->
-    Fs.readFile from, "utf8", (err,data) =>
-      @logger.info "Copying #{Path.basename(Path.resolve(from))} to #{to}"
-      Fs.writeFileSync to, data, "utf8"
+  copy: (from, to) ->
+    fromData = Fs.readFileSync from
+    Fs.writeFileSync to, fromData
 
-      callback(err, to) if callback?
-
-  # Rename a file
-  rename: (from, to, callback) ->
-    Fs.rename from, to, (err, data) =>
-      @logger.info "Renaming #{Path.basename(Path.resolve(from))} to #{to}"
-
-      callback(err, to) if callback?
+  link: (from, to) ->
+      Fs.symlinkSync from, to unless Fs.existsSync to
 
   run: ->
-    @logger.info "Creating an impact-crater project folder in #{@path}"
-
-    # Setup our new project directory
-    @mkdir(@path)
-
-    # TODO Make this more package oriented so we can have different game templates
-    #
-    # Setup/Copy over impact plugins
-    @mkdir("#{@path}/impact")
-    @mkdir("#{@path}/impact/lib")
-    @mkdir("#{@path}/impact/lib/plugins")
-    @mkdir("#{@path}/impact/lib/game")
-    @mkdir("#{@path}/impact/lib/game/entities")
-    @mkdir("#{@path}/impact/lib/game/server")
-    @mkdir("#{@path}/impact/lib/game/server/entities/")
-
-    plugins = [
-      'client.js'
-      'server.js'
-    ]
-    for file in plugins
-      @copy "#{@templateDir}/basic/impact/lib/plugins/#{file}", "#{@path}/impact/lib/plugins/#{file}"
-
-    # Setup/Copy over public files
-    @mkdir("#{@path}/public")
-    @copy "#{@templateDir}/basic/public/index.ejs", "#{@path}/public/index.ejs"
-
-    # Setup/Copy over server files
-    @mkdir("#{@path}/server")
-    serverFiles = [
-      'config.js'
-      'impact-crater.js'
-      'latency.js'
-      'start.js'
-    ]
-    for file in serverFiles
-      @copy "#{@templateDir}/basic/server/#{file}", "#{@path}/server/#{file}"
-
-    generalFiles = [
-      'gitignore'
-      'package.json'
-      'Procfile'
-    ]
-    for file in generalFiles
-      @copy "#{@templateDir}/basic/#{file}", "#{@path}/#{file}", (err, to)=>
-        @rename "#{@path}/gitignore", "#{@path}/.gitignore" if to is "#{@path}/gitignore"
-
-    @mkdir("#{@path}/bin")
-    @copy "#{@templateDir}/basic/bin/server","#{@path}/bin/server", (err, binPath)=>
-      Fs.chmodSync binPath, 0o755
-
+    console.log "    [INFO] Creating an impact-crater project in '#{@path}'."
+    # Create the project directory
+    @mkdir @path
+    # Scan all the files/dirs in the template directory and copy to @path.
+    Dir.paths @templatePath, (err, paths) =>
+        if err 
+            console.log err
+            console.log "    [ERROR] Template: '#{@type}' not found. Exiting."
+            return false
+        # Create directories
+        for dirPath in paths.dirs
+            newPath = dirPath.replace(@templatePath, @path)
+            @mkdir newPath
+        # Copy files
+        console.log "    [INFO] Linking files for development." if @development
+        for filePath in paths.files
+            newPath = filePath.replace(@templatePath, @path)
+            @link filePath, newPath if @development
+            @copy filePath, newPath unless @development
+        # Handle executable files
+        Fs.chmodSync "#{@path}/bin/server", 0o0755
+        try
+            console.log "    [INFO] Installing node modules..."
+            Exec "cd #{@path} && npm install"
+        console.log "    [SUCCESS] Finished creating project in '#{@path}'."
 
 module.exports = Generator

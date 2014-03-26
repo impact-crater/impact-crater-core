@@ -4,12 +4,14 @@ Generator = require '../src/generator'
 Server    = require '../src/server'
 Fs        = require 'fs'
 Path      = require 'path'
+Yargs     = require 'yargs'
 
-Options =
-  # port:       process.env.IMPACT_CRATER_PORT      or '9000'
+options =
+  port:       process.env.IMPACT_CRATER_PORT      or '9000'
   path:       process.env.IMPACT_CRATER_PATH      or '.'
   logging:    process.env.IMPACT_CRATER_LOG_LEVEL or 'info'
-  # dashboard:  process.env.IMPACT_CRATER_DASHBOARD or false
+  type:       'simple-game'
+  development: false
 
 usage = """
 
@@ -17,49 +19,52 @@ Run or generate impact-crater projects.
 
 Usage: impact-crater <command>
 
+Commands:
+  generate - Create a game type from a template.
+
+             Available Types:
+             * minimal:     Only the files needed to start the server.
+             * simple-game: Very simple game with a movable character.
+
+               Usage: impact-crater generate <path> <type>
+             Example: impact-crater generate games/crater-test simple-game
+
+     start - Start an impact-crater server.
+
+             Usage: impact-crater start <path>
+
 
 """
 
-examples = """
-
-To setup an impact-crater project:
-$ impact-crater generate [optional/path/to/generate]
-
-To run an impact-crater project:
-/path/of/project $ impact-crater start
-"""
-
-yargs  = require('yargs').alias('l', 'logging')
-                         .describe('logging', 'Set how verbose impact-crater should be.')
-                         # .alias('d', 'dashboard')
-                         # .describe('dashboard', 'Show the server dashboard')
-                         # .alias('p', 'port')
-                         # .describe('port', 'Set the port you want impact-crater running on.')
-
+Yargs.alias('l', 'logging')
+      .describe('logging', 'Set how verbose impact-crater should be. debug | info | error')
+    .alias('d', 'development')
+      .describe('development', 'When used with generate it will symlink all impact-crater files.')
 
 unless process.platform is "win32"
   process.on 'SIGTERM', ->
     process.exit 0
 
-if yargs.logging
-  Options.logging = yargs.logging
+argv = Yargs.argv
 
-# if yargs.argv.d
-#   Options.dashboard = true
+# Parse the dash options
+if argv.logging or argv.l
+  options.logging = argv.logging or argv.l
+if argv.development or argv.d
+  options.development = argv.development or argv.d
 
-# if yargs.port
-#   Options.port = yargs.port
-
-if yargs.argv._[0] is 'generate'
-  generatorPath = yargs.argv._[1] or Options.path
-
-  generator = new Generator(generatorPath, Options)
-  generator.run()
-
-else if yargs.argv._[0] is 'start'
-  serverPath = yargs.argv._[1] or Options.path
-  server = new Server(serverPath,Options)
-  server.run()
-
-else
-  console.log "#{usage}#{yargs.help()}#{examples}"
+switch argv._[0]
+    when 'generate'
+        unless argv._[1]
+            console.log "#{usage}#{Yargs.help()}"
+            return
+        options.path = argv._[1] or options.path
+        options.type = argv._[2] or options.type
+        generator = new Generator(options)
+        generator.run()
+    when 'start'
+        options.path = argv._[1] or options.path
+        server = new Server(options)
+        server.run()
+    else
+        console.log "#{usage}#{Yargs.help()}"
