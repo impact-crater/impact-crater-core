@@ -1,7 +1,7 @@
 {
   "name": "impact-crater",
   "preferGlobal": true,
-  "version": "0.0.3",
+  "version": "0.1.0",
   "dependencies": {
     "coffee-script": "1.6.3",
     "log": "1.4.0",
