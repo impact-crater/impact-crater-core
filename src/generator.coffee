@@ -23,7 +23,7 @@ class Generator
       Fs.symlinkSync from, to unless Fs.existsSync to
 
   run: ->
-    console.log "    [INFO] Creating an impact-crater project in '#{@path}'"
+    console.log "    [INFO] Creating an impact-crater project in '#{@path}'."
     # Create the project directory
     @mkdir @path
     # Scan all the files/dirs in the template directory and copy to @path.
@@ -37,6 +37,7 @@ class Generator
             newPath = dirPath.replace(@templatePath, @path)
             @mkdir newPath
         # Copy files
+        console.log "    [INFO] Linking files for development." if @development
         for filePath in paths.files
             newPath = filePath.replace(@templatePath, @path)
             @link filePath, newPath if @development

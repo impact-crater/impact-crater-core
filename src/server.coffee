@@ -11,7 +11,8 @@ class Server
     @startPath = "#{@serverPath}/start.js"
 
   run: ->
-    serverProcess = Fork @startPath, [@serverPath, '2>&1']
-    @logger.info "Starting server, port=#{@options.port}, pid=#{serverProcess.pid}"
+    config = require "#{@serverPath}/config"
+    serverProcess = Fork @startPath, ['2>&1']
+    @logger.info "Starting server, port=#{config.port}, pid=#{serverProcess.pid}"
 
 module.exports = Server
